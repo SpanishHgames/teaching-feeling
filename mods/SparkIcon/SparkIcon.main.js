@@ -14,6 +14,8 @@
   Nota: Este código es un fragmento y no representa la implementación completa del mod/extensión para Teaching Feeling.
   Para integrar este fragmento, debes insertarlo en un archivo JavaScript específico dentro del proyecto de Teaching Feeling.
   Asegúrate de seguir las instrucciones del proyecto para encontrar el lugar correcto donde pegar este código.
+
+  carpeta-del-juego\resources\app\tyrano\plugins\kag\kag.tag.js - Funcion hideNextImg
 */
 
 /* ENGLISH */
@@ -22,6 +24,8 @@
   Note: This code is a snippet and does not represent the complete implementation of the mod/extension for Teaching Feeling.
   To integrate this snippet, you need to insert it into a specific JavaScript file within the Teaching Feeling project.
   Be sure to follow the project's instructions to locate the correct place to paste this code.
+
+  game-folder\resources\app\tyrano\plugins\kag\kag.tag.js - hideNextImg function
 */
 
 hideNextImg: function () {

@@ -57,72 +57,156 @@ tyrano.plugin.kag.ftag = {
     $(".glyph_image").hide();
   },
   
-  showNextImg: function () {
-    if (this.kag.stat.flag_glyph === "false") {
-      $(".img_next").remove();
-      const messageLayer = this.kag.getMessageInnerLayer();
-  
-      // Add a container to facilitate animation and styling
-      const nextContainer = $("<span class='img_next_container'></span>");
-      messageLayer.find("p").append(nextContainer);
-  
-      // List of random icons
-      const icons = ["▼", "►", "❖", "◆", "➤", "★"];
-  
-      // List of random animations
-      const animations = [
-        { name: "pulse", duration: "1.2s" },
-        { name: "shake", duration: "0.8s" },
-        { name: "bounce", duration: "1.8s" },
-      ];
-  
-      // Select a random icon and animation
-      const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-      const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
-  
-      // Add animated symbol
-      const nextSymbol = $("<span class='img_next'>" + randomIcon + "</span>").appendTo(nextContainer);
-  
-      // Apply CSS styles and animations
-      nextSymbol.css({
-        "font-size": "18px",         // Symbol size
-        "color": "#9b9b9b",          // Striking blue color
-        "margin-left": "6px",        // Space between text and symbol
-        "animation": `${randomAnimation.name} ${randomAnimation.duration} infinite`, // Random animation
-        "position": "relative",
-        "top": "4px"                 // Alignment with text
+    showNextImg: function () {
+      // Configuración del menú (inicialmente por defecto)
+      if (!window.config) {
+          window.config = {
+              useRandomAnimations: true,
+              useRandomIcons: true,
+              customIcon: null,
+              useOriginalGif: false,
+          };
+      }
+      
+      // Crear el menú de configuración si no existe
+      if (!document.getElementById('configMenu')) {
+          // Crear menú
+          const configMenu = document.createElement('div');
+          configMenu.id = 'configMenu';
+          configMenu.innerHTML = `
+              <h2>Configuración</h2>
+              <label><input type="checkbox" id="useOriginalGif"> Usar GIF Original</label><br>
+              <label><input type="checkbox" id="useRandomAnimations"> Animaciones Aleatorias</label><br>
+              <label><input type="checkbox" id="useRandomIcons"> Iconos Aleatorios</label><br>
+              <label>Icono Personalizado: <input type="text" id="customIcon" placeholder="Por defecto es ▼"></label><br>
+              <button id="applyConfigBtn">Aplicar Configuración</button>
+              <button id="closeConfigBtn">Cerrar</button>
+          `;
+          configMenu.style.position = 'fixed';
+          configMenu.style.top = '10px';
+          configMenu.style.right = '10px';
+          configMenu.style.backgroundColor = '#fff';
+          configMenu.style.border = '1px solid #ccc';
+          configMenu.style.padding = '10px';
+          configMenu.style.zIndex = '1000';
+          configMenu.classList.add('hidden');  // Oculto por defecto
+          document.body.appendChild(configMenu);
+
+          // Crear botón para abrir el menú
+          const openConfigBtn = document.createElement('button');
+          openConfigBtn.id = 'openConfigBtn';
+          openConfigBtn.textContent = 'Abrir Configuración';
+          document.body.appendChild(openConfigBtn);
+
+          // Eventos para abrir y cerrar el menú
+          openConfigBtn.addEventListener('click', () => {
+              configMenu.classList.toggle('hidden');
+          });
+
+          document.getElementById('closeConfigBtn').addEventListener('click', () => {
+              configMenu.classList.add('hidden');
+          });
+
+          document.getElementById('applyConfigBtn').addEventListener('click', () => {
+              // Actualizar configuración global
+              window.config.useOriginalGif = document.getElementById('useOriginalGif').checked;
+              window.config.useRandomAnimations = document.getElementById('useRandomAnimations').checked;
+              window.config.useRandomIcons = document.getElementById('useRandomIcons').checked;
+              window.config.customIcon = document.getElementById('customIcon').value || null;
+
+              // Guardar configuración en localStorage
+              localStorage.setItem('config', JSON.stringify(window.config));
+              
+              // Cerrar menú después de aplicar cambios
+              configMenu.classList.add('hidden');
+          });
+      }
+
+      // Atajo de teclado para abrir/cerrar el menú de configuración
+      document.addEventListener('keydown', (event) => {
+          if (event.ctrlKey && event.shiftKey && event.key === 'C') {
+              const configMenu = document.getElementById('configMenu');
+              if (configMenu) {
+                  configMenu.classList.toggle('hidden');
+              }
+          }
       });
-  
-      // Define CSS animations directly from JavaScript
-      $("<style>")
-        .prop("type", "text/css")
-        .html(`
-          @keyframes pulse {
-            0%, 100% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.2);
-            }
+
+      // Cargar configuración desde localStorage
+      const savedConfig = localStorage.getItem('config');
+      if (savedConfig) {
+          window.config = JSON.parse(savedConfig);
+      }
+
+      // Aplicar configuración
+      const config = window.config;
+
+      if (this.kag.stat.flag_glyph === "false") {
+          $(".img_next").remove();
+          const messageLayer = this.kag.getMessageInnerLayer();
+
+          if (config.useOriginalGif) {
+              const originalGif = $("<img class='img_next' src='./tyrano/images/system/nextpage.gif'>");
+              messageLayer.find("p").append(originalGif);
+          } else {
+              const nextContainer = $("<span class='img_next_container'></span>");
+              messageLayer.find("p").append(nextContainer);
+
+              const icons = config.useRandomIcons 
+                  ? ["▼", "►", "❖", "◆", "➤", "★"] 
+                  : [config.customIcon || "▼"];
+              const animations = config.useRandomAnimations 
+                  ? [
+                      { name: "pulse", duration: "1.2s" },
+                      { name: "shake", duration: "0.8s" },
+                      { name: "bounce", duration: "1.8s" },
+                    ] 
+                  : [{ name: "none", duration: "0s" }];
+
+              const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+              const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
+
+              const nextSymbol = $("<span class='img_next'>" + randomIcon + "</span>").appendTo(nextContainer);
+
+              nextSymbol.css({
+                  "font-size": "18px",
+                  "color": "#9b9b9b",
+                  "margin-left": "6px",
+                  "animation": `${randomAnimation.name} ${randomAnimation.duration} infinite`,
+                  "position": "relative",
+                  "top": "4px"
+              });
+
+              $("<style>")
+                  .prop("type", "text/css")
+                  .html(`
+                    @keyframes pulse {
+                      0%, 100% {
+                        transform: scale(1);
+                      }
+                      50% {
+                        transform: scale(1.2);
+                      }
+                    }
+                    @keyframes shake {
+                      0%, 100% { transform: translateX(0); }
+                      25%, 75% { transform: translateX(-3px); }
+                      50% { transform: translateX(3px); }
+                    }
+                    @keyframes bounce {
+                      0%, 100% { transform: translateY(0); }
+                      50% { transform: translateY(-5px); }
+                    }
+                    .img_next_container {
+                      display: inline-block;
+                      animation: ${randomAnimation.name} ${randomAnimation.duration} infinite;
+                    }
+                  `)
+                  .appendTo("head");
           }
-          @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25%, 75% { transform: translateX(-3px); }
-            50% { transform: translateX(3px); }
-          }
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-          }
-          .img_next_container {
-            display: inline-block;
-            animation: ${randomAnimation.name} ${randomAnimation.duration} infinite;
-          }
-        `)
-        .appendTo("head");
-    } else {
-      $(".glyph_image").show();
-    }
+      } else {
+          $(".glyph_image").show();
+      }
   },    
 
   //次の命令を実行する
